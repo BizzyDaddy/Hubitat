@@ -20,7 +20,7 @@
  */
  
 metadata {
-    definition (name: "Inovelli Dimmer Red Series LZW31-SN", namespace: "InovelliUSA", author: "Eric Maycock", vid: "generic-dimmer", importUrl:"https://raw.githubusercontent.com/InovelliUSA/Hubitat/master/Drivers/inovelli-dimmer-red-series-lzw31-sn.src/inovelli-dimmer-red-series-lzw31-sn.groovy") {
+    definition (name: "Advance Inovelli Dimmer Red Series LZW31-SN", namespace: "InovelliUSA", author: "Eric Maycock", vid: "generic-dimmer", importUrl:"https://raw.githubusercontent.com/InovelliUSA/Hubitat/master/Drivers/inovelli-dimmer-red-series-lzw31-sn.src/inovelli-dimmer-red-series-lzw31-sn.groovy") {
         capability "Switch"
         capability "Refresh"
         capability "Polling"
@@ -51,6 +51,17 @@ metadata {
         command "pressDownX5"
         command "holdUp"
         command "holdDown"
+	    
+	    
+	command "setDefaultLED", [[name:"color*",type:"STRING", description:"Color (red, orange, yellow, green, cyan, blue, violet, pink)", constraints:["STRING"]],
+								  [name:"level",type:"NUMBER", description:"LED level (0-10)", constraints:["NUMBER"]]]
+	command "setNotificationLED", [[name:"color*", type:"STRING", description:"Color (red, orange, yellow, green, cyan, blue, violet, pink)", constraints: ["STRING"]],
+									   [name:"level*", type:"NUMBER", description:"LED level (0-10)", constraints:["NUMBER"]],
+									   [name:"duration", type:"NUMBER", description:"Effect duration (optional; 1-254 = number of seconds, 255 = indefinitely)", constraints:["NUMBER"]],
+									   //[name:"effect", type: "ENUM", description: "LED effect (optional)", constraints: ["off","solid","chase","fast-blink","slow-blink","pulse"]]]
+									   [name:"effect", type: "STRING", description: "LED effect (optional)", constraints: ["STRING"]]]
+
+
         
         command "childOn"
         command "childOff"
