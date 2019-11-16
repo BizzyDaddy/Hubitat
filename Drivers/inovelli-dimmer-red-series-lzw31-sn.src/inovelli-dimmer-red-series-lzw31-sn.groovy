@@ -1,7 +1,8 @@
 /**
- *  Inovelli Dimmer Red Series LZW31-SN
- *  Author: Eric Maycock (erocm123)
- *  Date: 2019-11-13
+ *  Advanced Inovelli Dimmer Red Series LZW31-SN
+ *  Original Author: Eric Maycock (erocm123)
+ *  Additions by Robert Morris/Scott Barton
+ *  Date: 2019-11-05 (Modified 2019-11-14)
  *
  *  Copyright 2019 Eric Maycock / Inovelli
  *
@@ -15,6 +16,7 @@
  *  for the specific language governing permissions and limitations under the License.
  *
  *  2019-11-13: Bug fix for not being able to set default level back to 0
+ *  2010-11-14:  Added commands to set notification LED (color, level, duration, effect)
  */
  
 metadata {
@@ -941,6 +943,77 @@ def processAssociations(){
       }
    }
    return cmds
+}
+
+def setDefaultLED(BigDecimal color, BigDecimal level) {
+	def number = 13
+	def value = (color >= 0 && color <= 255 ? color : 170)
+	def size = 2
+	//def cmds = []
+    //cmds << new hubitat.device.HubAction(command(setParameter(number, value, size)), hubitat.device.Protocol.ZWAVE)
+	def number2 = 14
+	def value2 = (level >= 0 && level <= 10) ? level : 10
+	def size2 = 1
+	return delayBetween([
+	    	command(zwave.configurationV1.configurationSet(scaledConfigurationValue: value, parameterNumber: number, size: size)),
+	    	command(zwave.configurationV1.configurationSet(scaledConfigurationValue: value2, parameterNumber: number2, size: size2)),
+	    	command(zwave.configurationV1.configurationGet(parameterNumber: number)),
+			command(zwave.configurationV1.configurationGet(parameterNumber: number2))
+		], 500)
+}
+
+def setDefaultLEDColor(BigDecimal color) {
+	def number = 13
+	def value = (color >= 0 && color <= 255 ? color : 170)
+	def size = 2
+	//def cmds = []
+	return delayBetween([
+	    	command(zwave.configurationV1.configurationSet(scaledConfigurationValue: value, parameterNumber: number, size: size)),
+	    	command(zwave.configurationV1.configurationGet(parameterNumber: number))
+		], 500)
+}
+
+def setDefaultLED(String color, BigDecimal level) {
+	return setDefaultLED(convertLEDColorStringToInt(color), level)	
+}
+
+def setDefaultLED(String color) {
+	return setDefaultLED(convertLEDColorStringToInt(color))
+}
+
+def setNotificationLED(BigDecimal color, BigDecimal level, BigDecimal duration, BigDecimal type) {
+	def number = 16
+	def size = 4
+	def value = 0
+	color = (color >= 0 && color <= 255) ? color : 255
+	level = (level >= 0 && level <= 10) ? level : 10
+	duration = (duration >= 1 && duration <= 255) ? duration : 255
+	type = (type >= 0 && type <= 5) ? type : 4
+	value += (color as int) * 1
+    value += (number as int) * 256
+    value += (duration as int) * 65536
+    value += (type as int) * 16777216
+	return delayBetween([
+	    	command(zwave.configurationV1.configurationSet(scaledConfigurationValue: value, parameterNumber: number, size: size)),
+	    	command(zwave.configurationV1.configurationGet(parameterNumber: number))
+		], 500)
+}
+
+def setNotificationLED(String color, BigDecimal level, BigDecimal duration=1, String type="slow-blink") {
+	def typeMap = ["off": 0, "solid": 1, "chase": 2, "fast-blink": 3, "slow-blink": 4, "pulse": 5]
+	def numType = typeMap[type] != null ? typeMap[type] : 1
+	return setNotificationLED(convertLEDColorStringToInt(color), level, duration, numType)
+}
+
+def clearNotificationLED() {
+	def cmds = []
+	cmds << new hubitat.device.HubAction(command(setParameter(16, 0, 4)), hubitat.device.Protocol.ZWAVE)
+    return cmds
+}
+
+private convertLEDColorStringToInt(String color) {
+	def colorMap = ["red": 0, "red-orange": 5, "orange": 21, "yellow": 42, "green": 85, "cyan": 127, "light-blue": 155, "blue": 170, "violet": 212, "pink": 234]
+	return colorMap[color] != null ? colorMap[color] : 170
 }
 
 def zwaveEvent(hubitat.zwave.commands.associationv2.AssociationReport cmd) {
